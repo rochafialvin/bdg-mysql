@@ -78,16 +78,6 @@ router.delete('/users/:userid', (req, res) => {
 })
 
 // LOGIN USER
-/*
-    login dengan email dan password
-
-        - user not found
-            array kosong
-        - wrong password
-
-    result = object user
-*/
-
 router.post('/users/login', (req, res) => {
     let {email, password} = req.body
 
@@ -109,7 +99,7 @@ router.post('/users/login', (req, res) => {
     })
 })
 
-
+// READ PROFILE
 
 
 
