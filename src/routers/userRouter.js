@@ -82,10 +82,36 @@ router.delete('/users/:userid', (req, res) => {
     login dengan email dan password
 
         - user not found
+            array kosong
         - wrong password
-        
+
     result = object user
 */
+
+router.post('/users/login', (req, res) => {
+    let {email, password} = req.body
+
+    let sql = `SELECT * FROM users WHERE email = '${email}'`
+
+    conn.query(sql, async (err, result) => {
+        if(err) return res.send(err)
+        // Jika user tidak ditemukan
+        if(result.length == 0) return res.send({error: "User not found"})
+        // User dipindahkan ke variabel, agar mudah dalam penggunaan
+        let user = result[0]
+        // Bandingkan password inputan dg yang ada di database, return true or false
+        let hash = await bcryptjs.compare(password, user.password)
+        // Jika hash bernilai false, kirim object error
+        if(!hash) return res.send({error: "Wrong password"})
+        // Kirim user sebagai respon
+        res.send(user)
+
+    })
+})
+
+
+
+
 
 
 
