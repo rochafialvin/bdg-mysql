@@ -2,6 +2,7 @@ const conn = require('../connection/index')
 const router = require('express').Router()
 const valid = require('validator')
 const bcryptjs = require('bcryptjs')
+const sendVerification = require('../emails/nodemailer')
 
 // GET ALL USERS
 router.get('/users', (req, res) => {
@@ -45,6 +46,9 @@ router.post('/users', (req, res) => {
 
     conn.query(sql, data, (err, result) => {
         if(err) return res.send(err)
+
+        // Kirim email verifikasi
+        sendVerification(data)
 
         conn.query(sql2, (err, result) => {
             if(err) return res.send(err)

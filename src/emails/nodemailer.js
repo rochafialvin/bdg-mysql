@@ -13,15 +13,20 @@ let transporter = nodemailer.createTransport({
     }
 })
 
-let mail = {
-    from: 'Rochafi Teach <rochafi.teach@gmail.com>',
-    to: 'rochafi.dev@gmail.com',
-    subject: 'Selamat Datang',
-    html:`<h1>Hello Gengs</h1>`
+let sendVerification = (data) => {
+    // data = {username, email, name, password}
+    let mail = {
+        from: 'Rochafi Teach <rochafi.teach@gmail.com>',
+        to: data.email,
+        subject: 'Selamat Datang',
+        html:`<h1>Hello, ${data.name}</h1>`
+    }
+    
+    transporter.sendMail(mail, (err, result) => {
+        if(err) return console.log(err)
+    
+        console.log('Email berhasil di kirim')
+    })
 }
 
-transporter.sendMail(mail, (err, result) => {
-    if(err) return console.log(err)
-
-    console.log('Email berhasil di kirim')
-})
+module.exports = sendVerification
