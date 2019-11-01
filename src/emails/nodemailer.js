@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer')
+// config
 const efig = require('./config')
 
 let transporter = nodemailer.createTransport({
