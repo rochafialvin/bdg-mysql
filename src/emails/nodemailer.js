@@ -19,7 +19,8 @@ let sendVerification = (data) => {
         from: 'Rochafi Teach <rochafi.teach@gmail.com>',
         to: data.email,
         subject: 'Selamat Datang',
-        html:`<h1>Hello, ${data.name}</h1>`
+        html:`<h1>Hello, ${data.name}</h1>
+            <a href=''>Klik untuk verifikasi</a>`
     }
     
     transporter.sendMail(mail, (err, result) => {
