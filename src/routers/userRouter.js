@@ -2,7 +2,76 @@ const conn = require('../connection/index')
 const router = require('express').Router()
 const valid = require('validator')
 const bcryptjs = require('bcryptjs')
+const multer = require('multer')
+const path = require('path')
 const sendVerification = require('../emails/nodemailer')
+// __dirname = C:\Users\rochafi\Desktop\bdg-mysql\src\routers
+const uploadDirectory = path.join(__dirname, '/../../public/uploads')
+
+// {
+//     "fieldname": "avatar",
+//     "originalname": "doggo-1.docx",
+//     "encoding": "7bit",
+//     "mimetype": "image/jpeg",
+//     "destination": "D:\\Project\\BE-ExpressMysql\\public\\uploads",
+//     "filename": "1572793683443avatar.jpg",
+//     "path": "D:\\Project\\BE-ExpressMysql\\public\\uploads\\1572793683443images.jpg",
+//     "size": 41880
+// }
+
+// Menentukan dimana foto akan disimpan, dan bagaimana foto tersebut di beri nama
+const _storage = multer.diskStorage({
+    // Menentukan folder penyimpanan foto
+    destination: function(req, file, cb){
+        cb(null, uploadDirectory)
+    },
+    // Menentukan pola nama file
+    filename: function(req, file, cb){
+        cb(null, Date.now() + file.fieldname + path.extname(file.originalname))
+    }
+})
+
+const upload = multer({
+    storage: _storage,
+    limits: {
+        fileSize : 1000000 // Byte, max 1MB
+    },
+    fileFilter(req, file, cb) {
+        if(!file.originalname.match(/\.(jpg|jpeg|png)$/)){ // will be error if the extension name is not one of these
+            return cb(new Error('Please upload image file (jpg, jpeg, or png)')) 
+        }
+
+        cb(undefined, true)
+    }
+})
+
+// POST AVATAR
+router.post('/avatar/:username', upload.single('avatar'),(req, res) => {
+    // Mencari user berdasarkan username
+    const sql = `SELECT * FROM users WHERE username = '${req.params.username}'`
+    // Jika user ditemukan, akan simpan nama foto ke dalam kolom avatar dari user tersebut
+    const sql2 = `UPDATE users SET avatar = '${req.file.filename}'
+                    WHERE username = '${req.params.username}'`
+
+    // Cari user berdasarkan username
+    conn.query(sql, (err, result) => {
+        if(err) return res.send({err : err.message})
+        // user = {id, username, email, password, avatar}
+        let user = result[0]
+        // Jika user tidak di temukan
+        if(!user) return res.send({err: "User not found"})
+
+        // Simpan nama foto yang baru di upload
+        conn.query(sql2, (err, result) => {
+            if(err) return res.send({err: err.message})
+
+            res.send({filename: req.file.filename})
+        })
+
+    })
+}, (err, req, res, next) => {
+    if(err) return res.send({err : err.message})
+})
 
 // GET ALL USERS
 router.get('/users', (req, res) => {
@@ -97,6 +166,8 @@ router.post('/users/login', (req, res) => {
         let hash = await bcryptjs.compare(password, user.password)
         // Jika hash bernilai false, kirim object error
         if(!hash) return res.send({error: "Wrong password"})
+        // Apakah user sudah melakukan verifikasi
+        if(!user.verified) return res.send({error: "Please verification your email"})
         // Kirim user sebagai respon
         res.send(user)
 
