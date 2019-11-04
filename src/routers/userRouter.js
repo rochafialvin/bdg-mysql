@@ -4,6 +4,7 @@ const valid = require('validator')
 const bcryptjs = require('bcryptjs')
 const multer = require('multer')
 const path = require('path')
+const fs = require('fs')
 const sendVerification = require('../emails/nodemailer')
 // __dirname = C:\Users\rochafi\Desktop\bdg-mysql\src\routers
 const uploadDirectory = path.join(__dirname, '/../../public/uploads')
@@ -46,7 +47,11 @@ const upload = multer({
 })
 
 // POST AVATAR
+// pattern baru
+// hapus foto jika user not found
+    // fs.unlinkSync
 router.post('/avatar/:username', upload.single('avatar'),(req, res) => {
+    console.log(req.body)
     // Mencari user berdasarkan username
     const sql = `SELECT * FROM users WHERE username = '${req.params.username}'`
     // Jika user ditemukan, akan simpan nama foto ke dalam kolom avatar dari user tersebut
@@ -64,13 +69,29 @@ router.post('/avatar/:username', upload.single('avatar'),(req, res) => {
         // Simpan nama foto yang baru di upload
         conn.query(sql2, (err, result) => {
             if(err) return res.send({err: err.message})
-
+            
             res.send({filename: req.file.filename})
         })
-
+    
     })
 }, (err, req, res, next) => {
     if(err) return res.send({err : err.message})
+})
+
+// ACCESS IMAGE
+router.get('/avatar/:namaFile', (req, res) => {
+    // Nama File
+    let namaFile = req.params.namaFile
+    
+    // Letak folder
+    let letakFolder = {
+        root: uploadDirectory
+    }
+    
+    res.sendFile(namaFile, letakFolder, function(err){
+        if(err) return res.send({err: err.message})
+
+    })
 })
 
 // GET ALL USERS
@@ -209,3 +230,11 @@ router.get('/verification/:username', (req, res) => {
 
 
 module.exports = router
+
+/*
+    upload satu gambar
+        upload.single()
+    
+    upload lebih dari satu gambar
+        upload.array()
+*/
