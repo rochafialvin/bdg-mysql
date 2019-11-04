@@ -48,6 +48,7 @@ const upload = multer({
 
 // POST AVATAR
 // pattern baru
+    // avatar-username.jpg
 // hapus foto jika user not found
     // fs.unlinkSync
 router.post('/avatar/:username', upload.single('avatar'),(req, res) => {
@@ -82,12 +83,13 @@ router.post('/avatar/:username', upload.single('avatar'),(req, res) => {
 router.get('/avatar/:namaFile', (req, res) => {
     // Nama File
     let namaFile = req.params.namaFile
-    
+
     // Letak folder
     let letakFolder = {
         root: uploadDirectory
     }
-    
+
+    // Mengirim file sebagai response
     res.sendFile(namaFile, letakFolder, function(err){
         if(err) return res.send({err: err.message})
 
@@ -149,6 +151,7 @@ router.post('/users', (req, res) => {
 })
 
 // UPDATE USER
+// bug ketika update password, tolong di benerin
 router.patch('/users/:userid', (req, res) => {
     let sql = `UPDATE users SET ? WHERE id = ?`
     let data = [req.body, req.params.userid]
@@ -209,7 +212,23 @@ router.get('/verification/:username', (req, res) => {
 })
 
 // READ PROFILE
+router.get('/users/profile/:username', (req, res) => {
+    let sql = `SELECT * FROM users WHERE username = '${req.params.username}'`
 
+    conn.query(sql, (err, result) => {
+        if(err) return res.send({err: err.message})
+
+        let user = result[0]
+
+        if(!user) return res.send({err: "User not found"})
+
+        res.send({
+            ...user,
+            avatar: `http://localhost:2019/avatar/${user.avatar}`
+        })
+        
+    })
+})
 
 
 
