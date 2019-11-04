@@ -16,11 +16,11 @@ let transporter = nodemailer.createTransport({
 let sendVerification = (data) => {
     // data = {username, email, name, password}
     let mail = {
-        from: 'Rochafi Teach <rochafi.teach@gmail.com>',
+        from: 'Alvin <alvin@purwadhika.com>',
         to: data.email,
         subject: 'Selamat Datang',
         html:`<h1>Hello, ${data.name}</h1>
-            <a href=''>Klik untuk verifikasi</a>`
+            <a href='http://localhost:2019/verification/${data.username}'>Klik untuk verifikasi</a>`
     }
     
     transporter.sendMail(mail, (err, result) => {
