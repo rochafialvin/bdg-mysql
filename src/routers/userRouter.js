@@ -7,7 +7,7 @@ const path = require('path')
 const fs = require('fs')
 const sendVerification = require('../emails/nodemailer')
 // __dirname = C:\Users\rochafi\Desktop\bdg-mysql\src\routers
-const uploadDirectory = path.join(__dirname, '/../../public/uploads')
+const uploadDirectory = path.join(__dirname, '/../../public/uploads/')
 
 // {
 //     "fieldname": "avatar",
@@ -100,6 +100,37 @@ router.get('/avatar/:namaFile', (req, res) => {
     // Mengirim file sebagai response
     res.sendFile(namaFile, letakFolder, function(err){
         if(err) return res.send({err: err.message})
+
+    })
+})
+
+// DELETE AVATAR
+router.delete('/avatar/:username', (req, res ) => {
+    let sql = `SELECT avatar FROM users WHERE username = '${req.params.username}'`
+    let sql2 = `UPDATE users SET avatar = null WHERE username = '${req.params.username}'`
+    // uploadDirectory = C:\Users\rochafi\Desktop\bdg-mysql\public\uploads\
+    
+    // Ambil nama image di kolom avatar user
+    conn.query(sql, (err, result) => {
+        if(err) return res.send({err: err.message})
+        // result = []
+        if(!result[0].avatar){
+            return res.send({err: "user not found"})
+        }
+
+        let imgPath = uploadDirectory + result[0].avatar
+
+        // Hapus image avatar
+        fs.unlink(imgPath, (err) => {
+            if(err) return res.send({err: err.message})
+
+            // Set null untuk property 'avatar' pada 'user'
+            conn.query(sql2, (err, result) => {
+                if(err) return res.send({err: err.message})
+
+                res.send("Berhasil di hapus")
+            })
+        })
 
     })
 })
