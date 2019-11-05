@@ -15,7 +15,7 @@ const uploadDirectory = path.join(__dirname, '/../../public/uploads/')
 //     "encoding": "7bit",
 //     "mimetype": "image/jpeg",
 //     "destination": "D:\\Project\\BE-ExpressMysql\\public\\uploads",
-//     "filename": "1572793683443avatar.jpg",
+//     "filename": "rochafi-avatar.jpg",
 //     "path": "D:\\Project\\BE-ExpressMysql\\public\\uploads\\1572793683443images.jpg",
 //     "size": 41880
 // }
@@ -176,13 +176,13 @@ router.post('/users',(req, res) => {
     data.password = bcryptjs.hashSync(data.password, 8)
 
     conn.query(sql, data, (err, result) => {
-        if(err) return res.send(err)
+        if(err) return res.send({error: err.message})
 
         // Kirim email verifikasi
         sendVerification(data)
 
         conn.query(sql2, (err, result) => {
-            if(err) return res.send(err)
+            if(err) return res.send({error: err.message})
 
             res.send(result)
         })
