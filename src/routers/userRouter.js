@@ -28,7 +28,7 @@ const _storage = multer.diskStorage({
     },
     // Menentukan pola nama file
     filename: function(req, file, cb){
-        cb(null, Date.now() + file.fieldname + path.extname(file.originalname))
+        cb(null, req.params.username + '-' + file.fieldname + path.extname(file.originalname))
     }
 })
 
@@ -51,30 +51,38 @@ const upload = multer({
     // avatar-username.jpg
 // hapus foto jika user not found
     // fs.unlinkSync
-router.post('/avatar/:username', upload.single('avatar'),(req, res) => {
-    console.log(req.body)
+router.post('/avatar/:username', (req, res, next) => {
+    // req = {params, query, body, file, files,}
     // Mencari user berdasarkan username
     const sql = `SELECT * FROM users WHERE username = '${req.params.username}'`
-    // Jika user ditemukan, akan simpan nama foto ke dalam kolom avatar dari user tersebut
-    const sql2 = `UPDATE users SET avatar = '${req.file.filename}'
-                    WHERE username = '${req.params.username}'`
 
-    // Cari user berdasarkan username
     conn.query(sql, (err, result) => {
         if(err) return res.send({err : err.message})
         // user = {id, username, email, password, avatar}
         let user = result[0]
         // Jika user tidak di temukan
         if(!user) return res.send({err: "User not found"})
+        // Menambahkan property baru pada objet 'req' yang dapat di proses di function berikutnya
+        // user = {username, email, password, ...}
+        req.user = user
 
-        // Simpan nama foto yang baru di upload
-        conn.query(sql2, (err, result) => {
-            if(err) return res.send({err: err.message})
-            
-            res.send({filename: req.file.filename})
-        })
-    
+        next()
     })
+
+}, upload.single('avatar'),(req, res) => {
+    
+    // Jika user ditemukan, akan simpan nama foto ke dalam kolom avatar dari user tersebut
+    const sql = `UPDATE users SET avatar = '${req.file.filename}'
+                    WHERE username = '${req.user.username}'`
+
+    // Simpan nama foto yang baru di upload
+    conn.query(sql, (err, result) => {
+        if(err) return res.send({err: err.message})
+        
+        res.send({filename: req.file.filename})
+    })
+    
+
 }, (err, req, res, next) => {
     if(err) return res.send({err : err.message})
 })
@@ -125,7 +133,7 @@ router.post('/usersv1', (req, res) => {
 })
 
 // CREATE USER V2
-router.post('/users', (req, res) => {
+router.post('/users',(req, res) => {
 
     let sql = `INSERT INTO users SET ?` // tanda tanya akan diisi oleh data
     let sql2 = `SELECT * FROM users`
@@ -151,10 +159,13 @@ router.post('/users', (req, res) => {
 })
 
 // UPDATE USER
-// bug ketika update password, tolong di benerin
 router.patch('/users/:userid', (req, res) => {
     let sql = `UPDATE users SET ? WHERE id = ?`
     let data = [req.body, req.params.userid]
+
+    if(data[0].password){
+        data[0].password = bcryptjs.hashSync(data[0].password, 8);
+    }
 
     conn.query(sql, data, (err, result) => {
         if(err) return res.end(err)
@@ -253,7 +264,9 @@ module.exports = router
 /*
     upload satu gambar
         upload.single()
+        req.file = {}
     
     upload lebih dari satu gambar
         upload.array()
+        req.files = [{}, {}, {}]
 */
