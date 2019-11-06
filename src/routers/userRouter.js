@@ -223,7 +223,7 @@ router.post('/users/login', (req, res) => {
     let sql = `SELECT * FROM users WHERE email = '${email}'`
 
     conn.query(sql, async (err, result) => {
-        if(err) return res.send(err)
+        if(err) return res.send({error: err.message})
         // Jika user tidak ditemukan
         if(result.length == 0) return res.send({error: "User not found"})
         // User dipindahkan ke variabel, agar mudah dalam penggunaan
@@ -235,6 +235,7 @@ router.post('/users/login', (req, res) => {
         // Apakah user sudah melakukan verifikasi
         if(!user.verified) return res.send({error: "Please verification your email"})
         // Kirim user sebagai respon
+        // user = {username, id}
         res.send(user)
 
     })
@@ -268,6 +269,12 @@ router.get('/users/profile/:username', (req, res) => {
             ...user,
             avatar: `http://localhost:2019/avatar/${user.avatar}`
         })
+
+        /*
+            user : {
+                id, username, email, avatar ..
+            }
+        */
         
     })
 })
