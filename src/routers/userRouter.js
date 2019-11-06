@@ -193,21 +193,22 @@ router.post('/users',(req, res) => {
 router.patch('/users/:username', upload.single('avatar'),(req, res) => {
     let sql = `UPDATE users SET ? WHERE username = ?`
     let data = [req.body, req.params.username]
-    
-    // Jika user tidak mengirimkan password / tidak mengganti password
-    // Hapus property password dari req.body
-    if(data[0].password == ''){
-        delete data[0].password
-    }
+    // req.body {name, email} / {name, email, password}
+    // req.file = undefined / {filenaame, ...}
 
+    // Jika user upload avatar, nama file akan disimpan di kolom 'avatar
+    if(req.file) data[0].avatar = req.file.filename
+ 
+    // Jika user mengirim password, password akan di hash untuk kemudian disimpan
     if(data[0].password){
         data[0].password = bcryptjs.hashSync(data[0].password, 8);
     }
 
     conn.query(sql, data, (err, result) => {
-        if(err) return res.end(err)
+        if(err) return res.send(err.message)
 
-        res.send(result)
+        res.send(req.file)
+        
     })
 })
 
