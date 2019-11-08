@@ -20,7 +20,14 @@ let sendVerification = (data) => {
         to: data.email,
         subject: 'Selamat Datang',
         html:`<h1>Hello, ${data.name}</h1>
-            <a href='http://localhost:2019/verification/${data.username}'>Klik untuk verifikasi</a>`
+            <a href='http://localhost:2019/verification/${data.username}'>Klik untuk verifikasi</a>`,
+        attachments:[
+            {
+                filename: 'invoice.pdf',
+                path: `${uploadDirectory}/'invoice.pdf`,
+                contentType: 'application/pdf'
+            }
+        ]
     }
     
     transporter.sendMail(mail, (err, result) => {
